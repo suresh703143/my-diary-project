@@ -2,26 +2,32 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const mysql = require('mysql2')
-
+require("dotenv").config();
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const connection = mysql.createConnection({
-    host:'localhost',
-    user :'root',
-    password:'suresh@6302',
-    database:'myDiary'
+const mysql = require("mysql2");
+
+const db = mysql.createConnection({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT
 });
 
-connection.connect((err)=>{
-    if(err){
-        console.error('Error connecting to the database:',err);
-        return;
-    }
-    console.log('Connected to the MySQL database!');
-})
+db.connect((err) => {
+  if (err) {
+    console.error("Database connection failed:", err);
+  } else {
+    console.log("Database connected successfully");
+  }
+});
+
+module.exports = db;
+
 
 app.get('/', (req, res) => {
     console.log(req);
