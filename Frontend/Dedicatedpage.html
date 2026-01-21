@@ -32,7 +32,7 @@ const params = new URLSearchParams(window.location.search);
 let postID = params.get("postID") || localStorage.getItem("viewPostID");
 
 async function loadPost() {
-  const res = await fetch(`http://localhost:3000/getSinglePost?postID=${postID}`);
+  const res = await fetch(`https://my-diary-project-backend.onrender.com/getSinglePost?postID=${postID}`);
   const post = await res.json();
 
   document.getElementById("title").value = post.postTitle;
@@ -51,7 +51,7 @@ async function savePost() {
   const postTitle = document.getElementById("title").value;
   const postDescription = document.getElementById("desc").value;
 
-  const res = await fetch(`http://localhost:3000/editPost/${postID}`, {
+  const res = await fetch(`https://my-diary-project-backend.onrender.com/editPost/${postID}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ postTitle, postDescription })

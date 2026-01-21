@@ -35,7 +35,7 @@
 
         try {
             // 3. Fetch posts only for this user
-            const response = await fetch(`http://localhost:3000/getMyPosts?userID=${userID}`);
+            const response = await fetch(`https://my-diary-project-backend.onrender.com/getMyPosts?userID=${userID}`);
             const posts = await response.json();
 
             const postContainer = document.querySelector('.allPosts');
@@ -85,7 +85,7 @@
   console.log("Delete clicked:", postID);
 
   const response = await fetch(
-    `http://localhost:3000/deletePost/${postID}`,
+    `https://my-diary-project-backend.onrender.com/deletePost/${postID}`,
     { method: "DELETE" }
   );
 
@@ -106,7 +106,7 @@ async function editPost(postID, oldTitle, oldDesc) {
   if (newDesc === null) return;
 
   const response = await fetch(
-    `http://localhost:3000/editPost/${postID}`,
+    `https://my-diary-project-backend.onrender.com/editPost/${postID}`,
     {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
