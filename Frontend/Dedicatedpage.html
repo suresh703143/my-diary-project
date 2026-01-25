@@ -16,7 +16,8 @@
   <!-- Edit button hidden initially -->
  <div class="Post card p-4 shadow">
   <input id="title" class="form-control mb-3" type="text" disabled />
-  <textarea id="desc" class="form-control" rows="6" disabled></textarea>
+    <p class="text-muted small" id="postDate"></p>
+    <textarea id="desc" class="form-control" rows="6" disabled></textarea>
 
   <button id="editBtn" class="btn btn-warning mt-3" onclick="enableEdit()">Edit</button>
 
@@ -32,10 +33,22 @@ const params = new URLSearchParams(window.location.search);
 let postID = params.get("postID") || localStorage.getItem("viewPostID");
 
 async function loadPost() {
-  const res = await fetch(`https://my-diary-project-backend.onrender.com/getSinglePost?postID=${postID}`);
+  const API_BASE = window.API_BASE || 'http://localhost:3000';
+  const res = await fetch(`${API_BASE}/getSinglePost?postID=${postID}`);
   const post = await res.json();
 
   document.getElementById("title").value = post.postTitle;
+  // show post date (date-only)
+  const createdRaw = post.createdAt || post.created_at || post.created || post.CreatedAt || post.timestamp;
+  const createdDate = createdRaw ? new Date(createdRaw) : null;
+  if (createdDate && !isNaN(createdDate)) {
+    const dd = String(createdDate.getDate()).padStart(2, '0');
+    const mm = String(createdDate.getMonth() + 1).padStart(2, '0');
+    const yyyy = createdDate.getFullYear();
+    document.getElementById('postDate').textContent = `${dd}-${mm}-${yyyy}`;
+  } else {
+    document.getElementById('postDate').textContent = '';
+  }
   document.getElementById("desc").value = post.postDescription;
 }
 
@@ -51,7 +64,8 @@ async function savePost() {
   const postTitle = document.getElementById("title").value;
   const postDescription = document.getElementById("desc").value;
 
-  const res = await fetch(`https://my-diary-project-backend.onrender.com/editPost/${postID}`, {
+  const API_BASE = window.API_BASE || 'http://localhost:3000';
+  const res = await fetch(`${API_BASE}/editPost/${postID}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ postTitle, postDescription })

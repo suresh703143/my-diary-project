@@ -41,11 +41,12 @@
     if (!title) { alert('Please enter a title.'); return; }
     if (!desc) { alert('Please enter a description.'); return; }
 
+    const API_BASE = window.API_BASE || 'http://localhost:3000';
     const formData = new URLSearchParams(new FormData(form));
     formData.append('userID', userID);
 
     try {
-      const response = await fetch('https://my-diary-project-backend.onrender.com/newPost', {
+      const response = await fetch(`${API_BASE}/newPost`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData
@@ -55,7 +56,7 @@
       alert(text);
 
       if (response.status == 200) {
-        window.location.href = "/FeedPage.html";
+        window.location.href = 'FeedPage.html';
       }
     } catch (err) {
       console.error('Create post error:', err);

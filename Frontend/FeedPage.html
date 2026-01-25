@@ -12,9 +12,9 @@
   </head>
   <body>
   <div class="text-end p-2">
-     <a class="btn btn-primary w-25" href="/Post.html">New Post</a> 
-  <a class="btn btn-danger w-25" href="/Login.html">Log out</a>  
-</div>
+     <a class="btn btn-primary w-25" href="Post.html">New Post</a>
+    <button class="btn btn-danger w-25" id="logoutBtn">Log out</button>
+  </div>
 <div class="allPosts">
     <div class="Post">
          </div>
@@ -34,8 +34,10 @@
         }
 
         try {
+            const API_BASE = window.API_BASE || 'http://localhost:3000';
+
             // 3. Fetch posts only for this user
-            const response = await fetch(`https://my-diary-project-backend.onrender.com/getMyPosts?userID=${userID}`);
+              const response = await fetch(`${API_BASE}/getMyPosts?userID=${userID}`);
             const posts = await response.json();
 
             const postContainer = document.querySelector('.allPosts');
@@ -47,32 +49,35 @@
             }
 
             // 4. Loop through posts and add them to the page
-            posts.forEach(post => {
-     const postDiv = document.createElement('div');
-     postDiv.className = 'Post card mb-3 shadow-sm';
-     postDiv.innerHTML = `
-     <div class="card-body">
-     <h5 class="card-title text-primary">${post.postTitle}</h5>
-     <p class="text-muted small">
-      ${new Date(post.createdAt).toLocaleString()}
-     </p>
-      <p class="card-text">${post.postDescription}</p>
+                    posts.forEach(post => {
+             const postDiv = document.createElement('div');
+             postDiv.className = 'Post card mb-3 shadow-sm';
+            // determine created date safely (fallback to now) and show only the date
+             const createdRaw = post.createdAt || post.created_at || post.created || post.CreatedAt || post.timestamp;
+            const createdDate = createdRaw ? new Date(createdRaw) : new Date();
+            let dateStr = 'Posted';
+            if (createdDate && !isNaN(createdDate)) {
+              const dd = String(createdDate.getDate()).padStart(2, '0');
+              const mm = String(createdDate.getMonth() + 1).padStart(2, '0');
+              const yyyy = createdDate.getFullYear();
+              dateStr = `${dd}/${mm}/${yyyy}`;
+            }
+            const postId = post.ID ?? post.id ?? post.Id ?? post.ID;
+             postDiv.innerHTML = `
+             <div class="card-body">
+             <h5 class="card-title text-primary">${post.postTitle}</h5>
+             <p class="text-muted small">
+              ${dateStr}
+             </p>
+              <p class="card-text">${post.postDescription}</p>
 
-     <button class="btn btn-primary btn-sm"
-  onclick="viewPost(${post.ID})">
-  View Post
-</button>
+            <button class="btn btn-success btn-sm editpost" onclick="viewPost(${postId})">Edit Post</button>
+            <button class="btn btn-danger btn-sm ms-2" onclick="deletePost(${postId})">Delete</button>
+          </div>
+        `;
 
-
-    <button class="btn btn-danger btn-sm"
-      onclick="deletePost(${post.ID})">
-      Delete
-    </button>
-  </div>
-`;
-
-    postContainer.appendChild(postDiv);
-});
+            postContainer.appendChild(postDiv);
+        });
 
 
         } catch (error) {
@@ -84,10 +89,8 @@
      async function deletePost(postID) {
   console.log("Delete clicked:", postID);
 
-  const response = await fetch(
-    `https://my-diary-project-backend.onrender.com/deletePost/${postID}`,
-    { method: "DELETE" }
-  );
+     const API_BASE = window.API_BASE || 'http://localhost:3000';
+     const response = await fetch(`${API_BASE}/deletePost/${postID}`, { method: 'DELETE' });
 
   if (response.status === 200) {
     fetchPosts(); // refresh posts
@@ -105,17 +108,12 @@ async function editPost(postID, oldTitle, oldDesc) {
   const newDesc = prompt("Edit Description:", oldDesc);
   if (newDesc === null) return;
 
-  const response = await fetch(
-    `https://my-diary-project-backend.onrender.com/editPost/${postID}`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        postTitle: newTitle,
-        postDescription: newDesc
-      })
-    }
-  );
+  const API_BASE = window.API_BASE || 'http://localhost:3000';
+  const response = await fetch(`${API_BASE}/editPost/${postID}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ postTitle: newTitle, postDescription: newDesc })
+  });
 
   if (response.status === 200) {
     fetchPosts(); // reload updated post
@@ -133,11 +131,18 @@ async function editPost(postID, oldTitle, oldDesc) {
 function viewPost(postID) {
   // store selected post ID (kept for backwards compatibility)
   localStorage.setItem("viewPostID", postID);
-
-  // go to dedicated page with postID query param
-  window.location.href = `/Dedicatedpage.html?postID=${postID}`;
+  // go to dedicated page with postID query param (relative path)
+  window.location.href = `Dedicatedpage.html?postID=${postID}`;
 }
 </script>
+
+    <script>
+      // Logout clears localStorage and redirects to login
+      document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        localStorage.removeItem('userID');
+        window.location.href = 'Login.html';
+      });
+    </script>
 
      <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.min.js" integrity="sha384-G/EV+4j2dNv+tEPo3++6LCgdCROaejBqfUeNjuKAiuXbjrxilcCdDz6ZAVfHWe1Y" crossorigin="anonymous"></script>

@@ -1,37 +1,84 @@
 require("dotenv").config();
 const express = require('express');
 const cors = require('cors');
-const bcrypt = require('bcrypt');
-const mysql = require('mysql2')
+const bcrypt = require("bcryptjs");
+const mysql = require('mysql2');
 
 const app = express();
-const db = require("./config/db"); 
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const mysql = require("mysql2");
 
-import mysql from "mysql2";
 
-const db = mysql.createConnection(process.env.MYSQL_PUBLIC_URL);
+const connection = mysql.createPool({
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+});
 
-db.connect((err) => {
+connection.getConnection((err, conn) => {
   if (err) {
     console.error("DB connection failed:", err);
   } else {
     console.log("Database connected successfully");
+    conn.release();
+    
+    // Initialize database and tables
+    initializeDatabase();
   }
 });
 
-export default db;
+// Initialize Database and Create Tables
+function initializeDatabase() {
+  // Create Users table
+  const createUsersTable = `
+    CREATE TABLE IF NOT EXISTS Users (
+      ID INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      EmailID VARCHAR(50) UNIQUE,
+      hashedPassword VARCHAR(100)
+    )
+  `;
 
-module.exports = db;
+  connection.query(createUsersTable, (err) => {
+    if (err) {
+      console.error('Error creating Users table:', err);
+    } else {
+      console.log('Users table ready');
+    }
+  });
 
+  // Create Posts table
+  const createPostsTable = `
+    CREATE TABLE IF NOT EXISTS Posts (
+      ID INT PRIMARY KEY AUTO_INCREMENT,
+      UserID INT,
+      postTitle VARCHAR(100),
+      postDescription VARCHAR(1500),
+      FOREIGN KEY(UserID) REFERENCES Users(ID)
+    )
+  `;
+
+  connection.query(createPostsTable, (err) => {
+    if (err) {
+      console.error('Error creating Posts table:', err);
+    } else {
+      console.log('Posts table ready');
+    }
+  });
+}
 
 app.get('/', (req, res) => {
-    console.log(req);
-    res.status(200).json({ message: 'Successful' })
+  res.status(200).json({ message: 'Successful' });
 });
 
 
@@ -39,52 +86,60 @@ app.get('/', (req, res) => {
 app.post('/registerUser', async (req, res) => {
   console.log("Request Body Received:", req.body);
   const { email, password } = req.body;
+  if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
   try {
-    
     const hashedPassword = await bcrypt.hash(password, 10);
-    console.log("hashed password:",hashedPassword);
-    connection.query(`insert into Users(EmailID,hashedPassword) values('${email}','${hashedPassword}')`,(err,results)=>{
-      if(err)
-      {
-        res.status(500).json('Error registering account')
+    console.log("hashed password:", hashedPassword);
+    connection.query(
+      'INSERT INTO Users (EmailID, hashedPassword) VALUES (?, ?)',
+      [email, hashedPassword],
+      (err, results) => {
+        if (err) {
+          console.error('Register query error:', err);
+          return res.status(500).json({ message: 'Error registering account', error: err.message });
+        }
+        return res.status(200).json({ message: 'Account registered successfully!', userID: results.insertId });
       }
-      res.status(200).json('Account registered successfully!')
-    })
-   
+    );
+  } catch (err) {
+    console.error('Hashing error:', err);
+    res.status(500).json({ message: 'Error while hashing password', error: err.message });
   }
-  catch(err){
-    console.error(err);
-    res.status(500).json('Error while hashing password');
-  }
- 
 });
 /* ---------- LOGIN ---------- */
 app.post('/userLogin', async (req, res) => {
   console.log("User logged in:", req.body);
   const { email, password } = req.body;
-   if (!email || !password) {
-    return res.status(400).json({ message: "Email and password required" });
-  }
- // let hashedPassword ="$2b$10$tcvOwuw/LnIJ0ubPFNuq/.L3AfEFvRxcVWm8oRRPbokXqVmR.udpi"
-    let hashedPassword=''; 
-    let userID='';
- connection.query(`select ID,hashedPassword from Users where EmailID= ?`,[email],async(err,result)=>{
- 
-    hashedPassword = result[0].hashedPassword;
-    userID = result[0].ID;
-    console.log(hashedPassword);
-    let response = await bcrypt.compare(password, hashedPassword);
+  if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
 
-if (response) {
- return res.status(200).send({userID:userID,message: "Login successful" });
+  connection.query(
+    'SELECT ID, hashedPassword FROM Users WHERE EmailID = ?',
+    [email],
+    async (err, result) => {
+      if (err) {
+        console.error('Login query error:', err);
+        return res.status(500).json({ message: 'Login failed', error: err.message });
+      }
 
-} else {
-  return res.status(500).send({ message: "Incorrect password" });
-}
-  })
- // let response=await bcrypt.compare(password,hashedPassword)
- // console.log('Is same: ',response);
-  // res.send(200).send('Matched')
+      if (!result || result.length === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      const hashedPassword = result[0].hashedPassword;
+      const userID = result[0].ID;
+      try {
+        const match = await bcrypt.compare(password, hashedPassword);
+        if (match) {
+          return res.status(200).json({ userID: userID, message: 'Login successful' });
+        } else {
+          return res.status(401).json({ message: 'Incorrect password' });
+        }
+      } catch (cmpErr) {
+        console.error('Bcrypt compare error:', cmpErr);
+        return res.status(500).json({ message: 'Login error', error: cmpErr.message });
+      }
+    }
+  );
 });
 
 /* ---------- NEW POST ---------- */
@@ -164,7 +219,11 @@ app.put('/editPost/:id', (req, res) => {
 
 
 
+
 /* ---------- SERVER ---------- */
-app.listen(3000, () => {
-  console.log("Server started on port 3000!");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server started on port ${PORT}!`);
 });
+
+
