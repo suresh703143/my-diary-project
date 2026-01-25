@@ -7,8 +7,7 @@ const mysql = require('mysql2');
 const app = express();
 app.use(cors({
   origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'DELETE']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -76,11 +75,6 @@ function initializeDatabase() {
     }
   });
 }
-
-app.get('/', (req, res) => {
-  res.status(200).json({ message: 'Successful' });
-});
-
 
 /* ---------- REGISTER ---------- */
 app.post('/registerUser', async (req, res) => {
@@ -218,8 +212,6 @@ app.put('/editPost/:id', (req, res) => {
 });
 
 
-
-
 /* ---------- SERVER ---------- */
 const PORT = process.env.PORT || 3000;
 app.get('/', (req, res) => {
@@ -229,5 +221,3 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}!`);
 });
-
-
