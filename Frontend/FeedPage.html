@@ -34,7 +34,7 @@
         }
 
         try {
-            const API_BASE = window.API_BASE || 'http://localhost:3000';
+            const API_BASE = window.API_BASE || 'https://my-diary-project-production-6c8f.up.railway.app';
 
             // 3. Fetch posts only for this user
               const response = await fetch(`${API_BASE}/getMyPosts?userID=${userID}`);
@@ -89,7 +89,7 @@
      async function deletePost(postID) {
   console.log("Delete clicked:", postID);
 
-     const API_BASE = window.API_BASE || 'http://localhost:3000';
+     const API_BASE = window.API_BASE || 'https://my-diary-project-production-6c8f.up.railway.app';
      const response = await fetch(`${API_BASE}/deletePost/${postID}`, { method: 'DELETE' });
 
   if (response.status === 200) {
@@ -108,7 +108,7 @@ async function editPost(postID, oldTitle, oldDesc) {
   const newDesc = prompt("Edit Description:", oldDesc);
   if (newDesc === null) return;
 
-  const API_BASE = window.API_BASE || 'http://localhost:3000';
+  const API_BASE = window.API_BASE || 'https://my-diary-project-production-6c8f.up.railway.app';
   const response = await fetch(`${API_BASE}/editPost/${postID}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
