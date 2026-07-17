@@ -23,7 +23,7 @@ const connection = mysql.createPool({
   database: process.env.MYSQLDATABASE,
   port: process.env.MYSQLPORT,
   ssl: {
-     ca: process.env.DB_CA_CERT
+      ca: fs.readFileSync("./ca.pem")
   },
   waitForConnections: true,
   connectionLimit: 10,
