@@ -14,19 +14,12 @@ app.use(express.urlencoded({ extended: true }));
 
 
 
-const fs = require("fs");
-
 const connection = mysql.createPool({
   host: process.env.MYSQLHOST,
   user: process.env.MYSQLUSER,
   password: process.env.MYSQLPASSWORD,
   database: process.env.MYSQLDATABASE,
   port: process.env.MYSQLPORT,
-  ssl: {
-      ca: process.env.DB_CA_CERT 
-        ? process.env.DB_CA_CERT.replace(/\\n/g, "\n")
-        : fs.readFileSync("./ca.pem")
-  },
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
