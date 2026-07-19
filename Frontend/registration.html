@@ -40,7 +40,7 @@
     e.preventDefault();
     const formData = new URLSearchParams(new FormData(form));
     try {
-      const response = await fetch('https://my-diary-project-production-6c8f.up.railway.app/registerUser', {
+      const response = await fetch('https://my-diary-project-cin7.onrender.com/registerUser', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
@@ -67,7 +67,7 @@
       }
     } catch (err) {
       console.error('Error:', err);
-      alert('Error: Cannot connect to server. Make sure backend is running on https://my-diary-project-production-6c8f.up.railway.app');
+      alert('Error: Cannot connect to server. Make sure backend is running on https://my-diary-project-cin7.onrender.com');
     }
   });
   </script>

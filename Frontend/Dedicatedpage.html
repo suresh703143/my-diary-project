@@ -33,7 +33,7 @@ const params = new URLSearchParams(window.location.search);
 let postID = params.get("postID") || localStorage.getItem("viewPostID");
 
 async function loadPost() {
-  const API_BASE = window.API_BASE || 'https://my-diary-project-production-6c8f.up.railway.app';
+  const API_BASE = window.API_BASE || 'https://my-diary-project-cin7.onrender.com';
   const res = await fetch(`${API_BASE}/getSinglePost?postID=${postID}`);
   const post = await res.json();
 
@@ -64,7 +64,7 @@ async function savePost() {
   const postTitle = document.getElementById("title").value;
   const postDescription = document.getElementById("desc").value;
 
-  const API_BASE = window.API_BASE || 'https://my-diary-project-production-6c8f.up.railway.app';
+  const API_BASE = window.API_BASE || 'https://my-diary-project-cin7.onrender.com';
   const res = await fetch(`${API_BASE}/editPost/${postID}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
