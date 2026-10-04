@@ -22,7 +22,10 @@ const connection = mysql.createPool({
   port: process.env.MYSQLPORT,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  ssl: {
+        rejectUnauthorized: true
+    }
 });
 
 connection.getConnection((err, conn) => {
